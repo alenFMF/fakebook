@@ -1,0 +1,17 @@
+%rebase ('base.html', title='Fakebook')
+%if napaka:
+<div id="napaka">{{napaka}}</div>
+%end
+<form id="login" method="post" action=".">
+<table>
+<tr>
+  <td>Email:</td>
+  <td><input type="text" name="email" value="{{email}}"></td>
+</tr>
+<tr>
+  <td>Geslo:</td>
+  <td><input type="password" name="geslo"></td>
+</tr>
+</table>
+<input type="submit" value="Login">
+</form>
