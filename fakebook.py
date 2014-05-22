@@ -17,49 +17,62 @@ secret=None
 ######################################################################
 # Pomožne funkcije
 
-def geslo_md5(s):
+def password_md5(s):
     """Vrni MD5 hash danega UTF-8 niza."""
     h = hashlib.md5()
-    h.update(s.encode('utf-8'))
+    h.update(s)
     return h.hexdigest()
+
+def get_user():
+    username = bottle.request.get_cookie('username', secret=secret)
+    if username is not None:
+        c = baza.cursor()
+        c.execute("SELECT username, ime FROM uporabnik WHERE username=?",
+                  [username])
+        r = c.fetchone()
+        if r is not None: return r
+    bottle.redirect('/login/')
 
 ######################################################################
 # Server
 
 @bottle.route("/")
 def main():
-    email = bottle.request.get_cookie('email', secret=secret)
-    if email is None:
-        bottle.redirect("/login/")
-    else:
-        c = baza.cursor()
-        c.execute("SELECT ime FROM uporabnik WHERE email=?",
-                  [email])
-        (ime,) = c.fetchone()
-        return bottle.template("main.html", ime=ime)
+    (username, ime) = get_user()
+    c = baza.cursor()
+    c.execute(
+    """SELECT ime, datetime(cas,'unixepoch'), vsebina
+       FROM trac JOIN uporabnik ON trac.avtor = uporabnik.username
+       WHERE avtor=? ORDER BY cas DESC
+    """,
+        [username])
+    return bottle.template("main.html",
+                           ime=ime,
+                           username=username,
+                           traci=c)
 
 @bottle.get("/login/")
 def login_get():
     return bottle.template("login.html",
                            napaka=None,
-                           email="")
+                           username="")
 
 @bottle.post("/login/")
 def login_post():
-    email = bottle.request.forms.get('email')
-    geslo = bottle.request.forms.get('geslo')
-    print ("email = {0}, geslo = {1}".format(email, geslo_md5(geslo)))
+    username = bottle.request.forms.username
+    password = bottle.request.forms.password
+    password = password_md5(password)
+    print ("username = {0}, password = {1}".format(username, password))
     c = baza.cursor()
-    c.execute("SELECT 1 FROM uporabnik WHERE email=? AND geslo=?",
-              [email, geslo_md5(geslo)])
+    c.execute("SELECT 1 FROM uporabnik WHERE username=? AND password=?",
+              [username, password])
     if c.fetchone() is None:
         return bottle.template("login.html",
-                               napaka="Napačno uporabniško ime ali geslo",
-                               email=email)
+                               napaka="Napačno uporabniško ime ali password",
+                               username=username)
     else:
-        bottle.response.set_cookie('email', email, path='/', secret=secret)
+        bottle.response.set_cookie('username', username, path='/', secret=secret)
         bottle.redirect("/")
-
 
 @bottle.get("/register/")
 def login_get():
@@ -67,22 +80,33 @@ def login_get():
 
 @bottle.post("/register/")
 def register_post():
-    email = bottle.request.forms.get('email')
-    ime = bottle.request.forms.get('ime')
-    geslo1 = bottle.request.forms.get('geslo1')
-    geslo2 = bottle.request.forms.get('geslo2')
+    username = bottle.request.forms.username
+    ime = bottle.request.forms.ime
+    password1 = bottle.request.forms.password1
+    password2 = bottle.request.forms.password2
     # Ali uporabnik že obstaja
     c = baza.cursor()
-    c.execute("SELECT 1 FROM uporabnik WHERE email=?", [email])
+    c.execute("SELECT 1 FROM uporabnik WHERE username=?", [username])
     if c.fetchone():
         return "Ste se ze registrirali"
-    elif not geslo1 == geslo2:
+    elif not password1 == password2:
         return "Gesli se ne ujemata"
     else:
-        geslo = geslo_md5(geslo1)
-        c.execute("INSERT INTO uporabnik (email, ime, geslo) VALUES (?, ?, ?)",
-                  (email, ime, geslo))
+        password = password_md5(password1)
+        c.execute("INSERT INTO uporabnik (username, ime, password) VALUES (?, ?, ?)",
+                  (username, ime, password))
         return "Ste registrirani."
+
+@bottle.post("/new-trac/")
+def new_trac():
+    (username, ime) = get_user()
+    trac = bottle.request.forms.trac
+    c = baza.cursor()
+    c.execute("INSERT INTO trac (avtor, vsebina) VALUES (?,?)",
+              [username, trac])
+    return bottle.redirect("/")
+        
+
 
 ######################################################################
 # Glavni program
