@@ -1,4 +1,8 @@
 %rebase ('base.html', title='Registracija')
+%if napaka:
+<div>{{napaka}}</div>
+%end
+
 <form id="register" method="post" action=".">
 <table>
 <tr>

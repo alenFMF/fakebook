@@ -1,0 +1,15 @@
+%rebase ('base.html', title='{{ime}}')
+
+<div id="traci">
+%for (avtor,cas,trac) in traci:
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">{{avtor}} [{{cas}}]</h3>
+  </div>
+  <div class="panel-body">
+    {{trac}}
+  </div>
+</div>
+%end
+</div>
+

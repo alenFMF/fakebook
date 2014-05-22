@@ -2,7 +2,7 @@
 
 import sqlite3
 import bottle
-import hashlib
+import hashlib # računanje MD5 kriptografski hash (za gesla)
 
 ######################################################################
 # Konfiguracija
@@ -10,9 +10,12 @@ import hashlib
 # Datoteka, v kateri je baza
 baza_datoteka = "fakebook.sqlite"
 
+# Mapa s statičnimi datotekami
+static_dir = "./static"
+
 # Skrivnost za kodiranje cookijev
-#secret = "acbd18db4cc2f85cedef654fccc4a4d8"
-secret=None
+secret = "to skrivnost je zelo tezko uganiti 1094107c907cw982982c42"
+
 
 ######################################################################
 # Pomožne funkcije
@@ -20,7 +23,7 @@ secret=None
 def password_md5(s):
     """Vrni MD5 hash danega UTF-8 niza."""
     h = hashlib.md5()
-    h.update(s)
+    h.update(s.encode('utf-8'))
     return h.hexdigest()
 
 def get_user():
@@ -36,6 +39,10 @@ def get_user():
 ######################################################################
 # Server
 
+@bottle.route("/static/<filename:path>")
+def static(filename):
+    return bottle.static_file(filename, root=static_dir)
+
 @bottle.route("/")
 def main():
     (username, ime) = get_user()
@@ -43,9 +50,8 @@ def main():
     c.execute(
     """SELECT ime, datetime(cas,'unixepoch'), vsebina
        FROM trac JOIN uporabnik ON trac.avtor = uporabnik.username
-       WHERE avtor=? ORDER BY cas DESC
-    """,
-        [username])
+       ORDER BY cas DESC
+    """)
     return bottle.template("main.html",
                            ime=ime,
                            username=username,
@@ -55,20 +61,27 @@ def main():
 def login_get():
     return bottle.template("login.html",
                            napaka=None,
-                           username="")
+                           username=None)
+
+@bottle.get("/logout/")
+def logout():
+    bottle.response.delete_cookie('username')
+    bottle.redirect('/login/')
 
 @bottle.post("/login/")
 def login_post():
+    # Dobimo podatke iz forme
     username = bottle.request.forms.username
     password = bottle.request.forms.password
+    # Izračunamo MD5 has gesla, ki ga bomo spravili
     password = password_md5(password)
-    print ("username = {0}, password = {1}".format(username, password))
+    # Preverimo, ali se je uporabnik pravilno prijavil
     c = baza.cursor()
     c.execute("SELECT 1 FROM uporabnik WHERE username=? AND password=?",
               [username, password])
     if c.fetchone() is None:
         return bottle.template("login.html",
-                               napaka="Napačno uporabniško ime ali password",
+                               napaka="Nepravilna prijava",
                                username=username)
     else:
         bottle.response.set_cookie('username', username, path='/', secret=secret)
@@ -76,7 +89,7 @@ def login_post():
 
 @bottle.get("/register/")
 def login_get():
-    return bottle.template("register.html")
+    return bottle.template("register.html", napaka=None)
 
 @bottle.post("/register/")
 def register_post():
@@ -88,14 +101,21 @@ def register_post():
     c = baza.cursor()
     c.execute("SELECT 1 FROM uporabnik WHERE username=?", [username])
     if c.fetchone():
-        return "Ste se ze registrirali"
+        # Uporabnik že obstaja
+        return bottle.template("register.html",
+                               napaka='To uporabniško ime je že zavzeto')
     elif not password1 == password2:
-        return "Gesli se ne ujemata"
+        # Geslo se ne ujemata
+        return bottle.template("register.html",
+                               napaka='Gesli se ne ujemata')
     else:
+        # Vse je v redu, vstavi novega uporabnika v bazo
         password = password_md5(password1)
         c.execute("INSERT INTO uporabnik (username, ime, password) VALUES (?, ?, ?)",
                   (username, ime, password))
-        return "Ste registrirani."
+        # Daj uporabniku cookie
+        bottle.response.set_cookie('username', username, path='/', secret=secret)
+        bottle.redirect("/")
 
 @bottle.post("/new-trac/")
 def new_trac():
@@ -106,6 +126,23 @@ def new_trac():
               [username, trac])
     return bottle.redirect("/")
         
+@bottle.route("/user/<username>/")
+def user_page(username):
+    c = baza.cursor()
+    # Ime tega uporabnika (hkrati preverimo, ali uporabnik sploh obstaja)
+    c.execute("SELECT ime FROM uporabnik WHERE username=?", [username])
+    (ime,) = c.fetchone()
+    # Prikaži vse trače tega uporabnika
+    c.execute(
+    """SELECT ime, datetime(cas,'unixepoch'), vsebina
+       FROM trac JOIN uporabnik ON trac.avtor = uporabnik.username
+       WHERE avtor=? ORDER BY cas DESC
+    """,
+        [username])
+    return bottle.template("user.html",
+                           ime=ime,
+                           username=username,
+                           traci=c)
 
 
 ######################################################################

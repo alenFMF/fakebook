@@ -1,20 +1,46 @@
 %rebase ('base.html', title='Fakebook')
-<div id="userinfo">{{ime}} [<a href="/logout/">odjava</a>]</div>
 
-<form id="new-trac" method="post" action="/new-trac/">
-<ul>
-<li>Kaj se dogaja?</li>
-<li><textarea name="trac"></textarea></li>
-<li><input type="submit" value="Pošlji"></li>
-</ul>
-</form>
+<div class="col-md-3">
+Prostor za leve reklame.
+</div>
+<div class="col-md-6">
 
-<div id="traci">
-%for (avtor,cas,trac) in traci:
-<ul id="trac">
-<li>{{avtor}} [{{cas}}]</li>
-<li><p>{{trac}}</p></li>
-</ul>
-%end
+<form id="trac-forma" class="form-horizontal" method="post" action="/new-trac/">
+<fieldset>
+
+<!-- Form Name -->
+<legend>Kva dogaja?</legend>
+
+<!-- Textarea -->
+<div class="control-group">
+  <label class="control-label" for="trac"></label>
+  <div class="controls">                     
+    <textarea id="trac" name="trac"></textarea>
+  </div>
 </div>
 
+<!-- Button -->
+<div class="control-group">
+  <label class="control-label" for="singlebutton"></label>
+  <div class="controls">
+    <button id="singlebutton" name="singlebutton" class="btn btn-primary">Kulsko!</button>
+  </div>
+</div>
+
+</fieldset>
+</form>
+
+%for (avtor,cas,vsebina) in traci:
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">{{avtor}} [{{cas}}]</h3>
+  </div>
+  <div class="panel-body">
+    {{vsebina}}
+  </div>
+</div>
+%end
+</div>
+<div class="col-md-3">
+Prostor za desne reklame.
+</div>
