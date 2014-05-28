@@ -1,15 +1,30 @@
-%rebase ('base.html', title='{{ime}}')
+%rebase ('base.html', title=uporabnik_ime)
 
-<div id="traci">
-%for (avtor,cas,trac) in traci:
-<div class="panel panel-default">
-  <div class="panel-heading">
-    <h3 class="panel-title">{{avtor}} [{{cas}}]</h3>
-  </div>
-  <div class="panel-body">
-    {{trac}}
-  </div>
+<div class="page-header">
+<h1>{{uporabnik_ime}}</h1>
+</h1>
 </div>
+
+<ul class="list-group">
+<li class="list-group-item">Trači <span class="badge">{{trac_count}}</span></li>
+<li class="list-group-item">Komentarji <span class="badge">{{komentar_count}}</span></li>
+</ul>
+
+%if username == uporabnik:
+<h4>Spremenite svoje podatke:</h4>
+
+<form method="post" action=".">
+  <input type="username" class="form-control" placeholder="Polno ime"
+   %if ime:
+     value="{{ime}}"
+   %end
+   name="ime"
+required>
+
+<input type="password" class="form-control" placeholder="Staro geslo" name="password1">
+<input type="password" class="form-control" placeholder="Novo geslo" name="password2">
+<input type="password" class="form-control" placeholder="Potrdi novo geslo" name="password3">
+
+<button class="btn btn-primary" type="submit">Spremeni</button>
+</form>
 %end
-</div>
-

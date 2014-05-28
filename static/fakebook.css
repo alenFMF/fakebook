@@ -27,6 +27,14 @@ footer {
  margin-right: 10px;
 }
 
+.trac-vsebina {
+  margin-bottom: 10px;
+}
+
+.trac-kontrole {
+  margin-bottom: 20px;
+}
+
 #trac-forma {
  margin-bottom: 30px;
  padding: 20px;

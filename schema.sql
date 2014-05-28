@@ -20,9 +20,3 @@ CREATE TABLE IF NOT EXISTS komentar (
   avtor TEXT NOT NULL REFERENCES uporabnik (username),
   cas INTEGER NOT NULL DEFAULT (strftime('%s','now'))
 );
-
-CREATE TABLE IF NOT EXISTS frend (
-  uporabnik TEXT NOT NULL REFERENCES uporabnik (username),
-  frend TEXT NOT NULL REFERENCES uporabnik (username),
-  CONSTRAINT frend_key PRIMARY KEY (uporabnik, frend)
-);
