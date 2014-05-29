@@ -11,20 +11,57 @@
 </ul>
 
 %if username == uporabnik:
-<h4>Spremenite svoje podatke:</h4>
+   <form class="form-horizontal" method="post" action=".">
+   <fieldset>
 
-<form method="post" action=".">
-  <input type="username" class="form-control" placeholder="Polno ime"
-   %if ime:
-     value="{{ime}}"
+   <!-- Form Name -->
+   <legend>Spremenite svoje podatke</legend>
+
+   %for sporocilo in sporocila:
+     <div class="alert {{sporocilo[0]}}">{{sporocilo[1]}}</div>
    %end
-   name="ime"
-required>
 
-<input type="password" class="form-control" placeholder="Staro geslo" name="password1">
-<input type="password" class="form-control" placeholder="Novo geslo" name="password2">
-<input type="password" class="form-control" placeholder="Potrdi novo geslo" name="password3">
+   <!-- Password input-->
+   <div class="control-group">
+     <label class="control-label" for="password1">Staro geslo</label>
+     <div class="controls">
+       <input id="passwordinput" name="password1" type="password" placeholder="" class="input-xlarge" required="">
+     </div>
+   </div>
 
-<button class="btn btn-primary" type="submit">Spremeni</button>
-</form>
+   <!-- Text input-->
+   <div class="control-group">
+     <label class="control-label" for="textinput">Polno ime</label>
+     <div class="controls">
+       <input id="textinput" name="ime" value="{{ime}}" type="text" placeholder="" class="input-xlarge" required="">
+     </div>
+   </div>
+
+   <!-- Password input-->
+   <div class="control-group">
+     <label class="control-label" for="password2">Novo geslo</label>
+     <div class="controls">
+       <input id="password2" name="password2" type="password" placeholder="" class="input-xlarge">
+       
+     </div>
+   </div>
+
+   <!-- Password input-->
+   <div class="control-group">
+     <label class="control-label" for="password3">Potrdite geslo</label>
+     <div class="controls">
+       <input id="password3" name="password3" type="password" placeholder="" class="input-xlarge">       
+     </div>
+   </div>
+
+   <!-- Button -->
+   <div class="control-group">
+     <label class="control-label" for="singlebutton"></label>
+     <div class="controls">
+       <button id="singlebutton" name="singlebutton" class="btn btn-primary">Spremeni</button>
+     </div>
+   </div>
+
+   </fieldset>
+   </form>
 %end

@@ -1,5 +1,11 @@
 %rebase ('base.html', title='Fakebook')
 
+%if sporocilo:
+  <div class="alert {{sporocilo[0]}} alert-dismissable">{{sporocilo[1]}}
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+  </div>
+%end
+
 <form id="trac-forma" class="form-horizontal" method="post" action="/trac/new/">
 <fieldset>
 

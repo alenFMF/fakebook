@@ -45,3 +45,16 @@ footer {
  width: 100%;
  height: 200px;
 }
+
+a.trac-avtor, a.trac-avtor:hover, a.trac-avtor:visited {
+  color: #fff;
+}
+
+textarea.komentar {
+  width: 100%;
+  height: 50px;
+}
+
+.trac-cas {
+  float: right;
+}
