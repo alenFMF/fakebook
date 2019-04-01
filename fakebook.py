@@ -2,7 +2,7 @@
 
 import sqlite3
 import bottle
-import hashlib # računanje MD5 kriptografski hash za gesla
+import hashlib # računanje kriptografski hash za gesla
 from datetime import datetime
 
 ######################################################################
@@ -25,10 +25,10 @@ secret = "to skrivnost je zelo tezko uganiti 1094107c907cw982982c42"
 ######################################################################
 # Pomožne funkcije
 
-def password_md5(s):
-    """Vrni MD5 hash danega UTF-8 niza. Gesla vedno spravimo v bazo
+def password_hash(s):
+    """Vrni SHA-512 hash danega UTF-8 niza. Gesla vedno spravimo v bazo
        kodirana s to funkcijo."""
-    h = hashlib.md5()
+    h = hashlib.sha512()
     h.update(s.encode('utf-8'))
     return h.hexdigest()
 
@@ -194,8 +194,8 @@ def login_post():
     """Obdelaj izpolnjeno formo za prijavo"""
     # Uporabniško ime, ki ga je uporabnik vpisal v formo
     username = bottle.request.forms.username
-    # Izračunamo MD5 has gesla, ki ga bomo spravili
-    password = password_md5(bottle.request.forms.password)
+    # Izračunamo hash gesla, ki ga bomo spravili
+    password = password_hash(bottle.request.forms.password)
     # Preverimo, ali se je uporabnik pravilno prijavil
     c = baza.cursor()
     c.execute("SELECT 1 FROM uporabnik WHERE username=? AND password=?",
@@ -242,7 +242,7 @@ def register_post():
                                napaka='Gesli se ne ujemata')
     else:
         # Vse je v redu, vstavi novega uporabnika v bazo
-        password = password_md5(password1)
+        password = password_hash(password1)
         c.execute("INSERT INTO uporabnik (username, ime, password) VALUES (?, ?, ?)",
                   (username, ime, password))
         # Daj uporabniku cookie
@@ -295,7 +295,7 @@ def user_change(username):
     # Novo ime
     ime_new = bottle.request.forms.ime
     # Staro geslo (je obvezno)
-    password1 = password_md5(bottle.request.forms.password1)
+    password1 = password_hash(bottle.request.forms.password1)
     # Preverimo staro geslo
     c = baza.cursor()
     c.execute ("SELECT 1 FROM uporabnik WHERE username=? AND password=?",
@@ -315,7 +315,7 @@ def user_change(username):
             # Preverimo, ali se gesli ujemata
             if password2 == password3:
                 # Vstavimo v bazo novo geslo
-                password2 = password_md5(password2)
+                password2 = password_hash(password2)
                 c.execute ("UPDATE uporabnik SET password=? WHERE username = ?", [password2, username])
                 sporocila.append(("alert-success", "Spremenili ste geslo."))
             else:
